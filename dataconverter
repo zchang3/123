@@ -1,0 +1,35 @@
+import pickle
+
+def dateConverter( date ):
+    '''
+    yyyy-mm-dd ---> (yyyy,mm,dd)
+    '''
+    return ( int(date[:4]), int(date[5:7]), int(date[8:10]) )
+
+if __name__ == '__main__':
+    
+    path2StockPriceFile = '/Users/hadip/Google Drive/CS229/Project/StockPrice/PriceAll'
+    path2StockPriceModifiedFile = '/Users/hadip/Google Drive/CS229/Project/StockPrice/PriceAll_modified'
+
+    trainingSet = []
+    englishLetters = [ chr(i) for i in range( ord('A'), ord('Z')+1 ) ]
+
+    for letter in englishLetters:
+        priceFile = open( path2StockPriceFile + '/' + letter + '.stock', 'rb')
+        priceData = pickle.load( priceFile )
+        priceFile.close()
+
+        output = {}
+        for symb in priceData.keys():
+            output[symb] = {}
+            if priceData[ symb ] == None:
+                output[ symb ] = None
+            else:
+                for date in priceData[ symb ].keys():
+                    cDate = dateConverter( date )
+                    output[symb][ cDate ] = priceData[ symb ] [ date ]
+    
+        priceModifiedFile = open( path2StockPriceModifiedFile + '/' + letter + '.stock', 'wb')
+        pickle.dump( output, priceModifiedFile )
+        priceModifiedFile.close()
+        print letter+' is DONE!!!!'
