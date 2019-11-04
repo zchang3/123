@@ -1,0 +1,65 @@
+import ystockquote as Y
+import pickle
+
+def converter( fileName ):
+    '''
+    Read the big stock price file (i.e., dict of dict of dict) and covert it to 
+    dict of dict of tuples:
+    i.e. the dict '2013-06-21': {'Volume': '24574100', 'Adj Close': '25.19', 'High': '25.43', 'Low': '24.94', 'Close': '25.19', 'Open': '25.29'}
+    converts to a tuple ( , , , , , )
+    '''
+    dataBase = pickle.load(open (fileName, 'rb') )
+    folderName = "PriceAll"
+    print ' data loaded.'
+    counter = 1.
+    output = {}
+    for symb in dataBase.keys():
+        print 'progress = ' + str(counter / len(dataBase.keys()) *100) + ' %'
+       
+        if symb[0] not in output:
+            output[symb[0]] = {}
+        output[symb[0]][symb] = {}
+
+        if dataBase[symb] != None:
+            for date in dataBase[symb].keys():
+                output[symb[0]][symb][date] = ( dataBase[symb][date]['Volume'], \
+                                              dataBase[symb][date]['Adj Close'], \
+                                              dataBase[symb][date]['High'], \
+                                              dataBase[symb][date]['Low'], \
+                                              dataBase[symb][date]['Close'], \
+                                              dataBase[symb][date]['Open'])
+        else: output[ symb[0] ][ symb] = None
+        counter += 1.
+    for letter in output.keys():
+        pickle.dump( output[letter], open( folderName+"/"+str(letter)+".stock", 'wb') )
+
+                                       
+
+def getAllStockPrices( ):
+    folderName = "/Users/hadip/Google Drive/CS229/Project/Earnings/Symb_Date_Info"
+    fileName = folderName + '/' +"EarningData_2009-01-01_2014-10-31.stock"
+    # we just need the symbol list:
+    symbols = (pickle.load( open( fileName, 'rb') )).keys()
+    
+    # Go and fetch the data for each symbol
+    stockInfo = {}
+    for symb in symbols:
+        try:
+            data_symb = Y.get_historical_prices(symb,'2009-01-01','2014-11-01')
+            stockInfo[symb] = data_symb
+            print str(symb) + ' is done 1st try.'
+        except:
+            try:
+                data_symb = Y.get_historical_prices(symb,'2009-01-01','2014-11-01')
+                stockInfo[symb] = data_symb
+                print str(symb) + ' is done 2nd try.'
+            except:
+                stockInfo[symb] = None
+                print str(symb) + ' failed!!'
+    fileName = "stockPrice.stock"
+    pickle.dump(stockInfo, open(fileName,'wb'))
+
+if __name__ == '__main__':
+   # getAllStockPrices()
+    fileName = "stockPrice.stock"
+    converter(fileName)
